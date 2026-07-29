@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Preview — Public Health AI</title>
+  <style>
+    :root{--bg:#f5f7fb;--card:#fff;--muted:#6b7280;--accent:#2196F3;--danger:#f44336;--success:#4CAF50;--violet:#9C27B0}
+    body{font-family:Inter, Roboto, 'Segoe UI', system-ui, -apple-system; background:var(--bg); margin:0; padding:24px;color:#111}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,0.04)}
+    .stat{grid-column:span 3;padding:18px;display:flex;justify-content:space-between;align-items:flex-start}
+    .stat .meta{max-width:70%}
+    .stat .meta h3{margin:0;font-size:12px;color:var(--muted)}
+    .stat .meta .value{font-size:28px;font-weight:700;margin-top:6px}
+    .stat .meta .sub{font-size:12px;color:var(--muted);margin-top:6px}
+    .icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white}
+    .icon.vax{background:linear-gradient(135deg,var(--accent),#1976d2)}
+    .icon.alert{background:linear-gradient(135deg,var(--danger),#d32f2f)}
+    .icon.people{background:linear-gradient(135deg,var(--success),#43a047)}
+    .icon.hospital{background:linear-gradient(135deg,var(--violet),#7b1fa2)}
+
+    .large{grid-column:span 8}
+    .side{grid-column:span 4}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .map{height:320px;border-radius:8px;background:linear-gradient(180deg,#eaf2ff,#fff);display:flex;align-items:center;justify-content:center;color:#334155}
+    .chart-canvas{height:220px;border-radius:6px;background:linear-gradient(180deg,#fff,#fbfdff);display:flex;align-items:center;justify-content:center}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .section-title{font-size:14px;margin-bottom:8px}
+    .alerts{height:220px;overflow:auto}
+    .alert-item{padding:10px;border-radius:6px;background:#fff;margin-bottom:8px;border-left:4px solid #f44336}
+    .bar-chart{height:200px;display:flex;align-items:flex-end;gap:8px;padding:12px}
+    .bar{flex:1;background:linear-gradient(180deg,#43a04766,#43a04733);border-radius:6px 6px 0 0;display:flex;align-items:flex-end;justify-content:center;color:#fff;font-weight:700}
+    .pie{width:180px;height:180px;border-radius:50%;background:conic-gradient(#ff9800 0 30%, #f44336 30% 50%, #2196F3 50% 75%, #4CAF50 75% 95%, #9C27B0 95% 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .legend{display:flex;flex-direction:column;gap:6px;margin-left:12px}
+    .legend span{display:flex;align-items:center;gap:6px}
+    .dot{width:12px;height:12px;border-radius:3px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Dashboard — AI Public Health Intelligence</h1>
+      <div style="color:var(--muted)">Preview • Static mock</div>
+    </header>
+
+    <div class="grid">
+      <!-- Stat cards -->
+      <div class="card stat">
+        <div class="meta">
+          <h3>Vaccination Coverage</h3>
+          <div class="value">86%</div>
+          <div class="sub">▲ 2% from last month</div>
+        </div>
+        <div class="icon vax">💉</div>
+      </div>
+
+      <div class="card stat">
+        <div class="meta">
+          <h3>Active Alerts</h3>
+          <div class="value">5</div>
+          <div class="sub">1 critical</div>
+        </div>
+        <div class="icon alert">⚠️</div>
+      </div>
+
+      <div class="card stat">
+        <div class="meta">
+          <h3>Children Vaccinated</h3>
+          <div class="value">12,345</div>
+          <div class="sub">Year-to-date</div>
+        </div>
+        <div class="icon people">👥</div>
+      </div>
+
+      <div class="card stat">
+        <div class="meta">
+          <h3>Active Facilities</h3>
+          <div class="value">128</div>
+          <div class="sub">Reporting</div>
+        </div>
+        <div class="icon hospital">🏥</div>
+      </div>
+
+      <!-- Main charts -->
+      <div class="card large">
+        <div class="section-title">Vaccination Coverage Trend</div>
+        <div class="chart-canvas">
+          <!-- simple SVG line chart -->
+          <svg width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none">
+            <polyline fill="none" stroke="#2196F3" stroke-width="4" points="0,120 80,90 160,100 240,70 320,75 400,60 480,50 560,40"/>
+            <!-- grid -->
+            <g stroke="#eef2ff" stroke-width="1">
+              <line x1="0" y1="20" x2="600" y2="20" />
+              <line x1="0" y1="60" x2="600" y2="60" />
+              <line x1="0" y1="100" x2="600" y2="100" />
+              <line x1="0" y1="140" x2="600" y2="140" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card side">
+        <div class="section-title">Disease Distribution</div>
+        <div style="display:flex;align-items:center;">
+          <div class="pie">35%</div>
+          <div class="legend">
+            <span><span class="dot" style="background:#FF9800"></span> Malaria</span>
+            <span><span class="dot" style="background:#F44336"></span> Measles</span>
+            <span><span class="dot" style="background:#2196F3"></span> Cholera</span>
+            <span><span class="dot" style="background:#4CAF50"></span> TB</span>
+            <span><span class="dot" style="background:#9C27B0"></span> COVID</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Facility performance and alerts -->
+      <div class="card large">
+        <div class="section-title">Facility Performance</div>
+        <div class="bar-chart">
+          <div style="flex:1;text-align:center;font-size:12px;color:var(--muted)">Ikot Abasi<div class="bar" style="height:85%">85</div></div>
+          <div style="flex:1;text-align:center;font-size:12px;color:var(--muted)">E. Obolo<div class="bar" style="height:78%">78</div></div>
+          <div style="flex:1;text-align:center;font-size:12px;color:var(--muted)">Mkpat Enin<div class="bar" style="height:92%">92</div></div>
+          <div style="flex:1;text-align:center;font-size:12px;color:var(--muted)">Uyo<div class="bar" style="height:88%">88</div></div>
+          <div style="flex:1;text-align:center;font-size:12px;color:var(--muted)">Itu<div class="bar" style="height:95%">95</div></div>
+        </div>
+      </div>
+
+      <div class="card side">
+        <div class="section-title">Active Alerts</div>
+        <div class="alerts">
+          <div class="alert-item">
+            <div style="font-weight:700">Outbreak reported — Ikot Abasi</div>
+            <div style="font-size:13px;color:var(--muted)">High fever cases exceeding threshold (25 new)</div>
+          </div>
+          <div class="alert-item">
+            <div style="font-weight:700">Cold chain failure — Uyo</div>
+            <div style="font-size:13px;color:var(--muted)">Vaccine fridge temp above safe range</div>
+          </div>
+          <div class="alert-item">
+            <div style="font-weight:700">Low reporting rate — Mkpat Enin</div>
+            <div style="font-size:13px;color:var(--muted)">Less than 50% facilities reported this week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="card" style="grid-column:1 / -1">
+        <div class="section-title">Health Facility Map</div>
+        <div class="map">[ Map placeholder — interactive map in real app ]</div>
+      </div>
+
+    </div>
+
+    <footer>
+      Static preview generated from frontend code: Dashboard page (frontend/src/pages/Dashboard.js)
+    </footer>
+  </div>
+</body>
+</html>
