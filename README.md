@@ -1,61 +1,118 @@
 # AI-Integrated Public Health System
 
 ## What this is
-A small full-stack project combining a Python backend with JavaScript frontends (web and mobile) to provide public-health related data collection and visualization powered by AI-assisted features.
+A full-stack public-health platform: Python FastAPI backend plus JavaScript web and mobile clients. It provides data collection, OCR/AI analysis, reporting, and dashboards, intended for deployments using Docker Compose or local development.
 
 ### Stack
-- **Language(s):** JavaScript (frontend + mobile), Python (backend)
-- **Framework / runtime:** Python (likely Flask/FastAPI) backend; JavaScript web frontend (React/Vue/Next.js); mobile app (React Native / Expo or other)
-- **Notable files:** docker-compose.yml, .env, backend/ (Python services), frontend/ (web client), mobile app/ (mobile client)
+- **Language(s):** JavaScript (frontend & mobile), Python (backend)
+- **Framework / runtime:** FastAPI (backend, uvicorn), React (frontend, react-scripts), React Native (mobile)
+- **Notable files:** docker-compose.yml, .env.example, backend/Dockerfile, backend/app/main.py (FastAPI entrypoint), init-db.sql, nginx.conf, prometheus.yml
 
 ## How it's organized
 ```
-.env                             environment variables for local/deploy
-AI-Integrated Public Health System  (project title / metadata file)
-backend/                         Python backend (API, data processing, ML/AI integration)
-frontend/                        JavaScript web client
-mobile app/                      JavaScript mobile client
-docker-compose.yml               orchestrates services (db, backend, frontend)
+.env.example                      example env file (copy to .env and edit)
+init-db.sql                       Postgres initialization + minimal schema
+nginx.conf                        simple reverse proxy for backend/frontend
+prometheus.yml                    prometheus scrape config
+backend/                          FastAPI backend (app/) + Dockerfile + requirements.txt
+frontend/                         React web client (package.json)
+mobile app/                       React Native mobile client (package.json, App.js)
+docker-compose.yml                orchestrates postgres, redis, backend, frontend, nginx, monitoring
+CONTRIBUTING.md                   contribution guide
+DEVELOPMENT.md                    local development instructions
+README.md                         this file
 ```
-How it fits together: The docker-compose.yml wires up the backend and any required services (database, cache). The backend exposes HTTP APIs consumed by the frontend and mobile app. The repo separates UI (frontend/mobile) from server code (backend).
 
-## How to run it (shortest path)
-1. Create a .env file at the repo root (a sample .env is present).
-2. Start services with Docker Compose:
+How it fits together: docker-compose boots Postgres and Redis, builds and runs the backend (uvicorn app.main:app on port 8000), runs Celery workers, and serves the frontend on port 3000. Nginx reverse-proxies /api and websocket routes to the backend and serves frontend static content.
+
+## Backend entrypoint and important files
+- Entrypoint: backend/app/main.py — FastAPI app exposed as `app` and started by the Dockerfile with:
 
 ```bash
-# from repository root
-cp .env .env.local  # make a local copy and edit any secrets
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+- Backend config: backend/app/config.py — primary environment variables and defaults (the app loads .env by default). Key env vars you should set in .env or your environment:
+  - DATABASE_URL (default: postgresql://user:password@localhost:5432/public_health_db)
+  - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB (used by docker-compose)
+  - REDIS_URL (redis://redis:6379/0)
+  - OPENAI_API_KEY, OPENAI_MODEL, OPENAI_MAX_TOKENS, OPENAI_TEMPERATURE
+  - AZURE_FORM_RECOGNIZER_ENDPOINT, AZURE_FORM_RECOGNIZER_KEY
+  - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
+  - TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+  - SENDGRID_API_KEY, EMAIL_FROM
+  - SECRET_KEY (change for production)
+  - CELERY_BROKER_URL, CELERY_RESULT_BACKEND
+  - SENTRY_DSN (optional)
+
+(See backend/app/config.py for the full list and defaults.)
+
+## How to run
+Recommended (Docker Compose — all services):
+
+```bash
+# From repository root
+cp .env.example .env
+# Edit .env and add any API keys (OPENAI_API_KEY etc.)
 docker-compose up --build
 ```
 
-3. Backend: by default should be reachable at http://localhost:8000 (or port defined in docker-compose).
-4. Frontend / Mobile: the docker-compose config or each project's README (frontend/, mobile app/) may include start scripts. If these are separate Node projects:
+Services started by docker-compose (important ports):
+- Postgres: 5432
+- Redis: 6379
+- Backend (uvicorn): 8000
+- Frontend (React): 3000
+- Nginx: 80
+- Prometheus: 9090
+- Grafana: 3001
+
+Check backend health: http://localhost:8000/health
+
+Run backend locally without Docker:
 
 ```bash
-# frontend
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+# Make sure DATABASE_URL + REDIS_URL point to reachable services
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Run frontend locally:
+
+```bash
 cd frontend
 npm install
 npm start
+# App will run on http://localhost:3000
+```
 
-# mobile (if React Native / Expo)
+Run mobile app (React Native):
+
+```bash
 cd "mobile app"
 npm install
 npm start
+# Use `npm run android` or `npm run ios` to build on device/emulator
 ```
 
-### Important env vars
-- Any API keys, DB connection strings, or AI service credentials should go into the top-level .env. Do not commit secrets.
+## Files I added for local/production readiness
+- init-db.sql — creates the `public_health_user` user, `public_health_db` and a minimal schema (users, reports). This file is mounted into the Postgres container and executes on first initialization.
+- nginx.conf — lightweight reverse proxy configuration used by the nginx service in docker-compose.
+- prometheus.yml — Prometheus scrape config (targets backend metrics path /metrics).
+- .env.example — non-secret placeholders for all required env vars; copy to .env.
+- CONTRIBUTING.md and DEVELOPMENT.md — contributor and developer setup guidance.
 
-## Notes for maintainers
-- Repo looks like a mixed Python/JS project. Inspect backend/ for the Python entrypoint (app.py, main.py) and frontend/package.json for scripts.
-- If you expect CI or container builds, check .github/workflows/ or Dockerfile(s) inside backend/ and frontend/.
+## Troubleshooting & notes
+- init-db.sql only runs on the first initialization of the Postgres volume. If Postgres container is already initialized, changes to init-db.sql won't re-run; remove the postgres_data volume to reinitialize (be careful: this deletes data).
+- If nginx fails to start, check docker logs: `docker-compose logs nginx` — ensure nginx.conf is present and backend/frontend are healthy.
+- If the backend needs DB migrations, check for Alembic configuration in backend/ (if present) and run `alembic upgrade head` from backend before starting Celery tasks.
+- For HTTPS: docker-compose mounts ./ssl into nginx; if you don't have certs, either add them to ./ssl or update nginx.conf to serve HTTP only.
 
-## Try asking
-- Where is the backend entrypoint (which file starts the API server) inside backend/?
-- Which framework does the frontend use (is there a package.json in frontend/ and what are the start/build scripts)?
-- Does the docker-compose.yml start a database service, and if so what credentials/ports are expected?
+## Next steps you might want me to do
+- Add a LICENSE (MIT/Apache)
+- Add Alembic migrations and wiring to docker-compose to run them on startup
+- Create a simple GitHub Actions workflow to run lint/tests
 
----
-
-(If you want, I can expand this README with run/debug instructions after I inspect backend/, frontend/, and mobile app/ files, and add a basic Development section or a CONTRIBUTING guide.)
+If you'd like, I will add any of the above and tweak README further (examples, API documentation snippets, or screenshots).
