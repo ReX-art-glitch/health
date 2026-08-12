@@ -1,0 +1,73 @@
+services:
+  - type: web
+    name: health-backend
+    runtime: docker
+    region: oregon
+    plan: standard
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: true
+    maxInstanceCount: 3
+    minInstanceCount: 1
+    
+    envVars:
+      # Application Settings
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: PORT
+        value: 8000
+      
+      # Database Configuration
+      - key: DATABASE_URL
+        sync: false
+      
+      # Redis Configuration
+      - key: REDIS_URL
+        sync: false
+      
+      # OpenAI Configuration
+      - key: OPENAI_API_KEY
+        sync: false
+      
+      # Azure Form Recognizer
+      - key: AZURE_FORM_RECOGNIZER_ENDPOINT
+        sync: false
+      - key: AZURE_FORM_RECOGNIZER_KEY
+        sync: false
+      
+      # AWS Configuration
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_S3_BUCKET
+        sync: false
+      
+      # Twilio Configuration
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      
+      # SendGrid Configuration
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: alerts@publichealthai.com
+      
+      # Security
+      - key: SECRET_KEY
+        sync: false
+      
+      # CORS Configuration
+      - key: ALLOWED_ORIGINS
+        value: "http://localhost:3000,https://your-frontend-domain.com"
+      
+      # Monitoring
+      - key: SENTRY_DSN
+        sync: false
