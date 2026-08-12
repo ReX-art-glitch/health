@@ -5,6 +5,7 @@ services:
     region: oregon
     plan: standard
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./
     autoDeploy: true
     maxInstanceCount: 3
     minInstanceCount: 1
